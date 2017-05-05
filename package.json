@@ -1,0 +1,28 @@
+{
+  "name": "web-speed-bot",
+  "version": "1.0.0",
+  "description": "Twitter bot that will test sites for speed when you copy it on messages that have URLs.",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sergeychernyshev/web-speed-bot.git"
+  },
+  "keywords": [
+    "webperf",
+    "twitter",
+    "webpagetest",
+    "bot"
+  ],
+  "author": "Sergey Chernyshev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sergeychernyshev/web-speed-bot/issues"
+  },
+  "homepage": "https://github.com/sergeychernyshev/web-speed-bot#readme",
+  "dependencies": {
+    "twit": "^2.2.5"
+  }
+}
