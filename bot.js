@@ -3,13 +3,8 @@ var Twit = require('twit'),
 
 var wptKey = require('./wpt.config.js').k;
 
-var querystring = require('querystring'),
-    http = require('http'),
-    fs = require('fs');
-
-var parseString = require('xml2js').parseString;
-
-var JSON = require('JSON');
+var WebPageTest = require('webpagetest'),
+    wpt = new WebPageTest('www.webpagetest.org', wptKey);
 
 T.get('account/verify_credentials', { skip_status: true })
 .catch(function (err) {
@@ -31,81 +26,48 @@ T.get('account/verify_credentials', { skip_status: true })
 
   console.log('The bot is now listening...');
 
-  // var stream = T.stream('user');
-  // stream.on('follow', function(event) {
-  //   var source = event.source;
-  //
-  //   var name = source.name,
-  //     screenName = source.screen_name;
-  //
-  //   console.log(event);
-  //   console.log(name, screenName);
-  //   //
-  //   // T.post('statuses/update', {
-  //   //   status: '@' + screenName + ' welcome, welcome, 123'
-  //   // }, function(err, data, response) {
-  //   //   console.log(data)
-  //   // })
-  // })
-
   stream.on('tweet', function(message) {
     var screenName = message.user.screen_name;
-
-    //console.log(message);
 
     // Return when the account has replied to itself and prevent infinite loops
     if (screenName === botName) {
       return;
     }
 
+    // This is the regex for detecting URL strings in the incoming tweet.  Probably imperfect and could be better, but works for now.
     var reURL = /(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?/gm;
 
+    // This will print the detected URL to the console, if there is a detected URL
     console.log('URL: ', message.text.match(reURL)[0].split(' ')[0]);
 
+    // This will set the detected URL
     var urlToTest = message.text.match(reURL)[0].split(' ')[0];
 
+    // @Todo --> handle the case (and probably have fun with) where no URL is in the tweet
     if (!urlToTest) {
       return;
     }
 
-    var post_data = querystring.stringify({
-      'url': urlToTest,
-      'f': 'xml',
-      'k': wptKey
-    });
-
-    var post_options = {
-      host: 'www.webpagetest.org',
-      path: '/runtest.php',
-      port: '80',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(post_data)
+    /*
+      This is the actual sending of the detected URL to WebPageTest for performance testing.  Right now with simple default settings.
+      It also tweets the result URL back to the original tweeter
+    */
+    wpt.runTest(urlToTest, function(err, data) {
+      var thisStatus;
+      if (err) {
+        console.log(err);
+        thisStatus = 'Hey @' + screenName + ', it looks like something went wrong with testing this URL.  WebPageTest threw me an error, sorry about that.';
       }
-    };
-
-    var post_req = http.request(post_options, function(res) {
-      res.setEncoding('utf8');
-      res.on('data', function (chunk) {
-          console.log('Response: ' + chunk);
-          parseString(chunk, function (err, result) {
-            var resultUrl = JSON.parse(JSON.stringify(result)).response.data[0].userUrl[0]
-            T.post('statuses/update', {
-              status: 'No problem @' + screenName + '.  I submitted the test for ' + urlToTest + ' to www.webpagetest.org, check the result at ' + resultUrl,
-              in_reply_to_status_id: message.id_str
-            }, function(err, data, response) {
-              // console.log(data)
-            })
-          });
-      });
+      else {
+        thisStatus = 'No problem @' + screenName + '.  I submitted the test for ' + urlToTest + ' to www.webpagetest.org, check the result at ' + data.data.userUrl;
+      }
+      T.post('statuses/update', {
+        status: thisStatus,
+        in_reply_to_status_id: message.id_str
+      }, function(err, data, response) {
+        // console.log(data)
+      })
     });
-
-    // post the data
-    post_req.write(post_data);
-    post_req.end();
-
-    // stream.stop();
   })
 })
 
