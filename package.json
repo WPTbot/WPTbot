@@ -4,7 +4,7 @@
   "description": "Twitter bot that will test sites for speed when you copy it on messages that have URLs.",
   "main": "bot.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node bot.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,10 @@
   },
   "homepage": "https://github.com/sergeychernyshev/web-speed-bot#readme",
   "dependencies": {
-    "twit": "^2.2.5"
+    "JSON": "^1.0.0",
+    "http": "0.0.0",
+    "querystring": "^0.2.0",
+    "twit": "^2.2.5",
+    "xml2js": "^0.4.19"
   }
 }
