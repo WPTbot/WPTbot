@@ -4,7 +4,7 @@
   "description": "Twitter bot that will test sites for speed when you copy it on messages that have URLs.",
   "main": "bot.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node bot.js"
   },
   "repository": {
     "type": "git",

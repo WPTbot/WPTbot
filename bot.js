@@ -1,6 +1,8 @@
 var Twit = require('twit'),
   T = new Twit(require('./config.js'));
 
+var wptKey = require('./wpt.config.js').k;
+
 var querystring = require('querystring'),
     http = require('http'),
     fs = require('fs');
@@ -69,7 +71,7 @@ T.get('account/verify_credentials', { skip_status: true })
     var post_data = querystring.stringify({
       'url': urlToTest,
       'f': 'xml',
-      'k': 'Need to put in your api key from webpagetest'
+      'k': wptKey
     });
 
     var post_options = {
