@@ -4,7 +4,9 @@
   "description": "Twitter bot that will test sites for speed when you copy it on messages that have URLs.",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js"
+    "start": "node bot.js",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -25,6 +27,8 @@
   "dependencies": {
     "twit": "^2.2.5",
     "url-unshort": "^5.0.0",
-    "webpagetest": "^0.3.8"
-  }
+    "webpagetest": "^0.3.8",
+    "snyk": "^1.69.6"
+  },
+  "snyk": true
 }
