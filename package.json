@@ -24,6 +24,7 @@
   "homepage": "https://github.com/sergeychernyshev/web-speed-bot#readme",
   "dependencies": {
     "twit": "^2.2.5",
+    "url-unshort": "^5.0.0",
     "webpagetest": "^0.3.8"
   }
 }
