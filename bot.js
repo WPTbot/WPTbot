@@ -6,6 +6,10 @@ var wptKey = require('./wpt.config.js').k;
 var WebPageTest = require('webpagetest'),
     wpt = new WebPageTest('www.webpagetest.org', wptKey);
 
+var uu = require('url-unshort')({
+  nesting: 4
+});
+
 T.get('account/verify_credentials', { skip_status: true })
 .catch(function (err) {
   console.log('caught error', err.stack)
@@ -24,7 +28,7 @@ T.get('account/verify_credentials', { skip_status: true })
     track: '@' + botName
   });
 
-  console.log('The bot is now listening...');
+  console.log('@' + botName + ' is now listening...');
 
   stream.on('tweet', function(message) {
     var screenName = message.user.screen_name;
@@ -48,26 +52,50 @@ T.get('account/verify_credentials', { skip_status: true })
       return;
     }
 
-    /*
-      This is the actual sending of the detected URL to WebPageTest for performance testing.  Right now with simple default settings.
-      It also tweets the result URL back to the original tweeter
-    */
-    wpt.runTest(urlToTest, function(err, data) {
-      var thisStatus;
-      if (err) {
-        console.log(err);
-        thisStatus = 'Hey @' + screenName + ', it looks like something went wrong with testing this URL.  WebPageTest threw me an error, sorry about that.';
-      }
-      else {
-        thisStatus = 'No problem @' + screenName + '.  I submitted the test for ' + urlToTest + ' to www.webpagetest.org, check the result at ' + data.data.userUrl;
-      }
-      T.post('statuses/update', {
-        status: thisStatus,
-        in_reply_to_status_id: message.id_str
-      }, function(err, data, response) {
-        // console.log(data)
+    uu.expand(urlToTest)
+      .then(function(url) {
+        if (url) {
+          console.log('Expanded url is: ' + url);
+          /*
+            This is the actual sending of the detected URL to WebPageTest for performance testing.  Right now with simple default settings.
+            It also tweets the result URL back to the original tweeter
+          */
+          wpt.runTest(url, function(err, data) {
+            var thisStatus;
+            if (err) {
+              console.log(err);
+              thisStatus = 'Hey @' + screenName + ', it looks like something went wrong with testing this URL.  WebPageTest threw me an error, sorry about that.';
+            }
+            else {
+              thisStatus = 'No problem @' + screenName + '.  I submitted the test for ' + url + ' to www.webpagetest.org, check the result at ' + data.data.userUrl;
+            }
+            T.post('statuses/update', {
+              status: thisStatus,
+              in_reply_to_status_id: message.id_str
+            }, function(err, data, response) {
+              // console.log(data)
+            })
+          });
+        }
+        else {
+          console.log('This url can\'t be expanded');
+          T.post('statuses/update', {
+            status: 'Hey @' + screenName + ', it looks like that url cannot be expanded from the shortened version.  Sorry about that.',
+            in_reply_to_status_id: message.id_str
+          }, function(err, data, response) {
+            // console.log(data)
+          })
+        }
       })
-    });
+      .catch(function(err) {
+        console.log(err);
+        T.post('statuses/update', {
+          status: 'Hey @' + screenName + ', I had some trouble with that url.  Most likely too many redirects or shorteners.  Sorry about that.',
+          in_reply_to_status_id: message.id_str
+        }, function(err, data, response) {
+          // console.log(data)
+        })
+      });
   })
 })
 
